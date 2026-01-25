@@ -3,7 +3,7 @@ name: Daily Newsletter
 on:
   schedule:
       - cron: '0 6 * * *'
-        workflow_dispatch:
+    workflow_dispatch:
             inputs:
                   dry_run:
                           description: 'Dry run (no Beehiiv post)'

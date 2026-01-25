@@ -1,0 +1,14 @@
+# Beyond Brief - Python Dependencies
+
+# News fetching
+feedparser>=6.0.0
+requests>=2.31.0
+
+# AI content generation
+anthropic>=0.18.0
+
+# HTML generation
+markdown>=3.5.0
+
+# Utilities
+python-dotenv>=1.0.0

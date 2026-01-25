@@ -2,32 +2,45 @@ name: Daily Newsletter
 
 on:
   schedule:
-      - cron: '0 6 * * *'
-    workflow_dispatch:
-            inputs:
-                  dry_run:
-                          description: 'Dry run (no Beehiiv post)'
-                                  required: false
-                                          default: 'false'
-                                                  type: boolean
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run (no Beehiiv post)'
+        required: false
+        default: 'false'
+        type: boolean
 
-                                                  jobs:
-                                                    generate-newsletter:
-                                                        runs-on: ubuntu-latest
-                                                            steps:
-                                                                  - uses: actions/checkout@v4
-                                                                        - uses: actions/setup-python@v5
-                                                                                with:
-                                                                                          python-version: '3.11'
-                                                                                                - run: pip install -r requirements.txt
-                                                                                                      - name: Run newsletter
-                                                                                                              env:
-                                                                                                                        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-                                                                                                                                  BEEHIIV_API_KEY: ${{ secrets.BEEHIIV_API_KEY }}
-                                                                                                                                            BEEHIIV_PUBLICATION_ID: ${{ secrets.BEEHIIV_PUBLICATION_ID }}
-                                                                                                                                                      NEWSAPI_KEY: ${{ secrets.NEWSAPI_KEY }}
-                                                                                                                                                              run: python main.py --output-dir ./output
-                                                                                                                                                                    - uses: actions/upload-artifact@v4
-                                                                                                                                                                            with:
-                                                                                                                                                                                      name: newsletter-${{ github.run_number }}
-                                                                                                                                                                                                path: output/
+jobs:
+  generate-newsletter:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run newsletter generation
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          BEEHIIV_API_KEY: ${{ secrets.BEEHIIV_API_KEY }}
+          BEEHIIV_PUBLICATION_ID: ${{ secrets.BEEHIIV_PUBLICATION_ID }}
+          NEWSAPI_KEY: ${{ secrets.NEWSAPI_KEY }}
+        run: |
+          if [ "${{ github.event.inputs.dry_run }}" == "true" ]; then
+            python main.py --dry-run --output-dir ./output
+          else
+            python main.py --output-dir ./output
+          fi
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: newsletter-${{ github.run_number }}
+          path: output/

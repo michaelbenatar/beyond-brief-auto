@@ -7,14 +7,14 @@ Run this script via GitHub Actions, cron, or manually.
 
 Usage:
     python main.py                    # Full run: fetch → write → post
-    python main.py --dry-run          # Generate but don't post to Beehiiv
+    python main.py --dry-run          # Generate but don't post
     python main.py --skip-fetch       # Use cached news data
     python main.py --output-dir ./out # Save files to specific directory
 
 Environment Variables Required:
     ANTHROPIC_API_KEY       - Claude API key for content generation
-    BEEHIIV_API_KEY         - Beehiiv API key for posting drafts
-    BEEHIIV_PUBLICATION_ID  - Your Beehiiv publication ID
+    NOTION_API_KEY          - Notion integration token
+    NOTION_DATABASE_ID      - Notion database ID to post to
 
 Optional Environment Variables:
     NEWSAPI_KEY             - NewsAPI key for additional news sources
@@ -31,6 +31,7 @@ from pathlib import Path
 from news_fetcher import fetch_all_news, save_news_to_file
 from ai_writer import generate_full_newsletter, save_newsletter_content
 from html_generator import generate_html, save_html
+from notion_poster import post_to_notion
 
 
 def post_to_beehiiv(html_content: str, dry_run: bool = False) -> dict:
@@ -86,7 +87,7 @@ def post_to_beehiiv(html_content: str, dry_run: bool = False) -> dict:
 def main():
     """Main entry point."""
     parser = argparse.ArgumentParser(description="Beyond Brief Newsletter Automation")
-    parser.add_argument("--dry-run", action="store_true", help="Don't post to Beehiiv")
+    parser.add_argument("--dry-run", action="store_true", help="Don't post to Notion")
     parser.add_argument("--skip-fetch", action="store_true", help="Use cached news data")
     parser.add_argument("--output-dir", type=str, default="./output", help="Output directory")
     parser.add_argument("--news-file", type=str, help="Use specific news JSON file")
@@ -161,18 +162,18 @@ def main():
     print()
 
     # ========================================
-    # Step 4: Post to Beehiiv
+    # Step 4: Post to Notion
     # ========================================
-    print("STEP 4: Posting to Beehiiv...")
+    print("STEP 4: Posting to Notion...")
 
     try:
-        result = post_to_beehiiv(html_content, dry_run=args.dry_run)
+        result = post_to_notion(newsletter, html_content, dry_run=args.dry_run)
         if not args.dry_run:
-            # Save post ID for reference
-            with open(output_dir / f"beehiiv_{date_str}.json", 'w') as f:
+            # Save response for reference
+            with open(output_dir / f"notion_{date_str}.json", 'w') as f:
                 json.dump(result, f, indent=2)
     except Exception as e:
-        print(f"  ❌ Error posting to Beehiiv: {e}")
+        print(f"  ❌ Error posting to Notion: {e}")
         if not args.dry_run:
             sys.exit(1)
 
@@ -186,12 +187,12 @@ def main():
         print(f"  • News: {news_file}")
         print(f"  • Newsletter: {newsletter_file}")
         print(f"  • HTML: {html_file}")
-        print("\nTo post to Beehiiv, run without --dry-run")
+        print("\nTo post to Notion, run without --dry-run")
     else:
-        print("\nNewsletter draft created! Next steps:")
-        print("  1. Go to Beehiiv and review the draft")
+        print("\nNewsletter posted to Notion! Next steps:")
+        print("  1. Open Notion and review the draft")
         print("  2. Make any final edits")
-        print("  3. Schedule or send!")
+        print("  3. Copy to Beehiiv when ready to send!")
 
 
 if __name__ == "__main__":

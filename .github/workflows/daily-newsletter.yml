@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       dry_run:
-        description: 'Dry run (no Beehiiv post)'
+        description: 'Dry run (no Notion post)'
         required: false
         default: 'false'
         type: boolean
@@ -29,8 +29,8 @@ jobs:
       - name: Run newsletter generation
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          BEEHIIV_API_KEY: ${{ secrets.BEEHIIV_API_KEY }}
-          BEEHIIV_PUBLICATION_ID: ${{ secrets.BEEHIIV_PUBLICATION_ID }}
+          NOTION_API_KEY: ${{ secrets.NOTION_API_KEY }}
+          NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
           NEWSAPI_KEY: ${{ secrets.NEWSAPI_KEY }}
         run: |
           if [ "${{ github.event.inputs.dry_run }}" == "true" ]; then

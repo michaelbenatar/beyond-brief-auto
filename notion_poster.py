@@ -39,21 +39,38 @@ def post_to_notion(newsletter: dict, html_content: str, dry_run: bool = False) -
     # Build the page content from newsletter sections
     children = []
 
+    # The newsletter format has sections as a dict: {"greeting": "...", "top_story": "..."}
+    sections_data = newsletter.get('sections', {})
+
+    # Define section order and their display names
+    section_order = [
+        ('greeting', '👋 Welcome'),
+        ('top_story', '🔥 Top Story'),
+        ('in_the_news', '📰 In The News'),
+        ('ai_watch', '🤖 AI Watch'),
+        ('tool_of_day', '🛠️ Tool of the Day'),
+        ('quick_hits', '⚡ Quick Hits'),
+        ('founder_insight', '💡 Founder Insight'),
+    ]
+
     # Add each section as Notion blocks
-    for section in newsletter.get('sections', []):
-        section_type = section.get('type', '')
-        content = section.get('content', '')
+    for section_type, header_text in section_order:
+        content = sections_data.get(section_type, '')
+        if not content:
+            continue
 
         # Section header
-        header_text = get_section_header(section_type)
-        if header_text:
-            children.append({
+        children.append({
                 "object": "block",
                 "type": "heading_2",
                 "heading_2": {
                     "rich_text": [{"type": "text", "text": {"content": header_text}}]
                 }
             })
+
+        # Skip the greeting header but keep content
+        if section_type == 'greeting':
+            children.pop()  # Remove the header we just added
 
         # Section content - split into paragraphs
         paragraphs = content.split('\n\n')

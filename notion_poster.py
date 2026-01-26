@@ -127,17 +127,14 @@ def post_to_notion(newsletter: dict, html_content: str, dry_run: bool = False) -
         "Notion-Version": "2022-06-28"
     }
 
+    # Build properties - only use title (required)
+    # The title property name varies by database (often "Name" or "Title")
+    # We'll try to create with minimal properties and let Notion handle defaults
     payload = {
         "parent": {"database_id": database_id},
         "properties": {
-            "Name": {
+            "title": {
                 "title": [{"text": {"content": title}}]
-            },
-            "Date": {
-                "date": {"start": today.strftime("%Y-%m-%d")}
-            },
-            "Status": {
-                "select": {"name": "Draft"}
             }
         },
         "children": children[:100]  # Notion limit: 100 blocks per request
